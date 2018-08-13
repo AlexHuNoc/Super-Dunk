@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Super Dunk</title>
+</head>
+
+<body>
+    <script src="./js/phaser.min.js"></script>
+    <script type="text/javascript">
+        window.onload = () => {
+            var game = new Phaser.Game(800, 600, Phaser.AUTO, '', {
+                preload: preload,
+                create: create,
+                update: update
+            });
+
+            function preload() {
+                game.load.image('back', './img/bg.png')
+                game.load.image('basicBall', './img/Ball_01.png')
+                game.load.image('fireball', './img/Balls_01.png')
+                game.load.image('basket_01', './img/BG_05(2).png')
+                game.load.image('basket_02', './img/BG_11.png')
+                game.load.image('basket_03', './img/BG_13.png')
+                game.load.image('basket_04', './img/BG_06(1).png')
+            }
+
+            var back,
+                basicBall,
+                fireball,
+                basket_01,
+                basket_02,
+                basket_03,
+                basket_04,
+                basket_05,
+                basket_06,
+                basket_07,
+                basket_08,
+                score = 0,
+                text;
+
+            function create() {
+                // 物理引擎
+                game.physics.startSystem(Phaser.Physics.ARCADE);
+                
+                
+
+                // 背景
+                back = game.add.sprite(game.world.centerX, game.world.centerY, 'back');
+                back.anchor.setTo(0.5, 0.5);
+                back.inputEnabled = true;
+                back.events.onInputDown.add(down, this);
+                back.events.onInputUp.add(up, this);
+
+                // 分数
+                text = game.add.text(350, 100, score, {
+                    font: "65px Arial",
+                    fill: "#ff0044",
+                    align: "center"
+                })
+                text.anchor.set(0.5)
+                
+                //右
+                // 篮板
+                basket_01 = game.add.sprite(790, 100, 'basket_01')
+                basket_01.scale.setTo(0.5, 0.5)
+                // 篮框上
+                basket_02 = game.add.sprite(810, 263, 'basket_02')
+                basket_02.scale.setTo(-0.5, -0.5)
+
+                // 篮框下
+                basket_03 = game.add.sprite(810, 275, 'basket_03')
+                basket_03.scale.setTo(-0.5, -0.5)
+
+                // 篮网
+                basket_04 = game.add.sprite(705, 250, 'basket_04')
+                basket_04.scale.setTo(0.45, 0.45)
+
+
+                // 左
+                // 篮板
+                basket_05 = game.add.sprite(10, 100, 'basket_01')
+                basket_05.scale.setTo(-0.5, 0.5)
+
+                // 篮框上
+                basket_06 = game.add.sprite(-10, 255, 'basket_02')
+                basket_06.scale.setTo(0.5, 0.5)
+                // 篮框下
+                basket_07 = game.add.sprite(-10, 243, 'basket_03')
+                basket_07.scale.setTo(0.5, 0.5)
+                // 篮网
+                basket_08 = game.add.sprite(23, 260, 'basket_04')
+                basket_08.scale.setTo(0.45, 0.45)
+
+
+                basicBall = game.add.sprite(500, 200, 'basicBall')
+                basicBall.scale.setTo(0.4, 0.4)
+
+                // game.physics.enable(basicBall, Phaser.Physics.ARCADE);
+                game.physics.arcade.enable([basicBall, basket_01])
+                // game.physics.arcade.enable([basicBall, basket_02])
+                // game.physics.arcade.enable([basicBall, basket_03])
+                game.physics.arcade.enable([basicBall, basket_05])
+                // game.physics.arcade.enable([basicBall, basket_06])
+                // game.physics.arcade.enable([basicBall, basket_07])
+                basket_01.body.allowGravity = false;
+                basket_01.body.immovable = true;
+                // basket_02.body.allowGravity = false;
+                // basket_02.body.immovable = true;
+                // basket_03.body.allowGravity = false;
+                // basket_03.body.immovable = true;
+                basket_05.body.allowGravity = false;
+                basket_05.body.immovable = true;
+                // basket_06.body.allowGravity = false;
+                // basket_06.body.immovable = true;
+                // basket_07.body.allowGravity = false;
+                // basket_07.body.immovable = true;
+                // 保持移动
+                basicBall.body.velocity.setTo(300, 500);
+                game.physics.arcade.gravity.y = 500;
+                basicBall.body.collideWorldBounds = true;
+                basicBall.body.bounce.setTo(0.6, 0.9);
+            }
+
+            function timeDown() {
+
+            }
+
+            function leftOut() {
+                basket_05.x += -200;
+                basket_06.x += -200;
+                basket_07.x += -200;
+                basket_08.x += -200;
+                // game.add.tween(picture).to( { alpha: 0 }, 2000, Phaser.Easing.Linear.None, true);
+            }
+
+            function leftIn() {
+                basket_05.x += 200;
+                basket_06.x += 200;
+                basket_07.x += 200;
+                basket_08.x += 200;
+            }
+
+            function rightOut() {
+                basket_01.x += 200;
+                basket_02.x += 200;
+                basket_03.x += 200;
+                basket_04.x += 200;
+            }
+
+            function rightIn() {
+                basket_01.x += 200;
+                basket_02.x += 200;
+                basket_03.x += 200;
+                basket_04.x += 200;
+            }
+
+            // 得分
+            function goal() {
+                score++;
+                text.text = score;
+            }
+
+            // 按下向上运动
+            function down(item) {
+                game.physics.arcade.gravity.y = -700;
+            }
+
+            // 抬起向下运动
+            function up(item) {
+                game.physics.arcade.gravity.y = 300;
+            }
+
+            function update() {
+                game.physics.arcade.collide(basicBall, basket_01);
+                // game.physics.arcade.collide(basicBall, basket_02);
+                // game.physics.arcade.collide(basicBall, basket_03);
+                game.physics.arcade.collide(basicBall, basket_05);
+                // game.physics.arcade.collide(basicBall, basket_06);
+                // game.physics.arcade.collide(basicBall, basket_07);
+            }
+        }
+    </script>
+</body>
+
+</html>
