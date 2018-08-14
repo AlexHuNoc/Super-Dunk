@@ -15,46 +15,62 @@
             var game = new Phaser.Game(800, 600, Phaser.AUTO, '', {
                 preload: preload,
                 create: create,
-                update: update
+                update: update,
+                render: render
             });
+
 
             function preload() {
                 game.load.image('back', './img/bg.png')
-                game.load.image('basicBall', './img/Ball_01.png')
+                game.load.image('basketball', './img/Ball_01.png')
                 game.load.image('fireball', './img/Balls_01.png')
-                game.load.image('basket_01', './img/BG_05(2).png')
-                game.load.image('basket_02', './img/BG_11.png')
-                game.load.image('basket_03', './img/BG_13.png')
-                game.load.image('basket_04', './img/BG_06(1).png')
+                game.load.image('rebound', './img/BG_05(2).png')
+                game.load.image('basketUp', './img/BG_11.png')
+                game.load.image('basketDown', './img/BG_13.png')
+                game.load.image('nets', './img/BG_06(1).png')
             }
 
             var back,
-                basicBall,
+                basketball,
                 fireball,
-                basket_01,
-                basket_02,
-                basket_03,
-                basket_04,
-                basket_05,
-                basket_06,
-                basket_07,
-                basket_08,
+                isGoalRight_01,
+                isGoalRight_02,
+                reboundRight,
+                basketUpRight,
+                basketDownRight,
+                netsRight,
+                isGoalLeft_01,
+                isGoalLeft_02,
+                reboundLeft,
+                basketUpLeft,
+                basketDownLeft,
+                netsLeft,
+                blockLeft_01,
+                blockLeft_02,
+                blockRight_01,
+                blockRight_02,
                 score = 0,
-                text;
+                direction = 'right',
+                text,
+                timer,
+                tiemr_01,
+                begin = false,
+                progress,
+                last,
+                length = 0,
+                down = 0,
+                up = 0;
 
             function create() {
                 // 物理引擎
                 game.physics.startSystem(Phaser.Physics.ARCADE);
-                
-                
 
                 // 背景
                 back = game.add.sprite(game.world.centerX, game.world.centerY, 'back');
                 back.anchor.setTo(0.5, 0.5);
                 back.inputEnabled = true;
-                back.events.onInputDown.add(down, this);
-                back.events.onInputUp.add(up, this);
-
+                back.events.onInputDown.add(click, this);
+                progress = new Phaser.Rectangle(100, 10, 450, 20)
                 // 分数
                 text = game.add.text(350, 100, score, {
                     font: "65px Arial",
@@ -62,125 +78,211 @@
                     align: "center"
                 })
                 text.anchor.set(0.5)
-                
+
+
                 //右
                 // 篮板
-                basket_01 = game.add.sprite(790, 100, 'basket_01')
-                basket_01.scale.setTo(0.5, 0.5)
-                // 篮框上
-                basket_02 = game.add.sprite(810, 263, 'basket_02')
-                basket_02.scale.setTo(-0.5, -0.5)
+                reboundRight = game.add.sprite(690, 100, 'rebound')
+                reboundRight.scale.setTo(0.5, 0.5)
 
                 // 篮框下
-                basket_03 = game.add.sprite(810, 275, 'basket_03')
-                basket_03.scale.setTo(-0.5, -0.5)
+                basketDownRight = game.add.sprite(710, 255, 'basketUp')
+                basketDownRight.scale.setTo(-0.5, 0.5)
 
-                // 篮网
-                basket_04 = game.add.sprite(705, 250, 'basket_04')
-                basket_04.scale.setTo(0.45, 0.45)
+                // 篮框左边缘
+                blockRight_01 = game.add.sprite(600, 260, 'basketUp');
+                blockRight_01.scale.setTo(0.03, 0.03)
 
+                // 篮框右边缘
+                blockRight_02 = game.add.sprite(670, 260, 'basketUp');
+                blockRight_02.scale.setTo(0.03, 0.03)
 
                 // 左
                 // 篮板
-                basket_05 = game.add.sprite(10, 100, 'basket_01')
-                basket_05.scale.setTo(-0.5, 0.5)
+                reboundLeft = game.add.sprite(-90, 100, 'rebound')
+                reboundLeft.scale.setTo(-0.5, 0.5)
 
                 // 篮框上
-                basket_06 = game.add.sprite(-10, 255, 'basket_02')
-                basket_06.scale.setTo(0.5, 0.5)
-                // 篮框下
-                basket_07 = game.add.sprite(-10, 243, 'basket_03')
-                basket_07.scale.setTo(0.5, 0.5)
+                basketUpLeft = game.add.sprite(-110, 255, 'basketUp')
+                basketUpLeft.scale.setTo(0.5, 0.5)
+
+                // 篮框左边缘
+                blockLeft_01 = game.add.sprite(-10, 260, 'basketUp');
+                blockLeft_01.scale.setTo(0.03, 0.03)
+
+                // 篮框右边缘
+                blockLeft_02 = game.add.sprite(-80, 260, 'basketUp');
+                blockLeft_02.scale.setTo(0.03, 0.03)
+
+
+
+                // 篮球
+                basketball = game.add.sprite(100, 350, 'basketball')
+                basketball.scale.setTo(0.4, 0.4)
+
+                // 右
                 // 篮网
-                basket_08 = game.add.sprite(23, 260, 'basket_04')
-                basket_08.scale.setTo(0.45, 0.45)
+                netsRight = game.add.sprite(605, 260, 'nets')
+                netsRight.scale.setTo(0.45, 0.45)
 
+                // 篮框上
+                basketUpRight = game.add.sprite(710, 243, 'basketDown')
+                basketUpRight.scale.setTo(-0.5, 0.5)
 
-                basicBall = game.add.sprite(500, 200, 'basicBall')
-                basicBall.scale.setTo(0.4, 0.4)
+                // 左
+                // 篮框下
+                basketDownLeft = game.add.sprite(-110, 243, 'basketDown')
+                basketDownLeft.scale.setTo(0.5, 0.5)
 
-                // game.physics.enable(basicBall, Phaser.Physics.ARCADE);
-                game.physics.arcade.enable([basicBall, basket_01])
-                // game.physics.arcade.enable([basicBall, basket_02])
-                // game.physics.arcade.enable([basicBall, basket_03])
-                game.physics.arcade.enable([basicBall, basket_05])
-                // game.physics.arcade.enable([basicBall, basket_06])
-                // game.physics.arcade.enable([basicBall, basket_07])
-                basket_01.body.allowGravity = false;
-                basket_01.body.immovable = true;
-                // basket_02.body.allowGravity = false;
-                // basket_02.body.immovable = true;
-                // basket_03.body.allowGravity = false;
-                // basket_03.body.immovable = true;
-                basket_05.body.allowGravity = false;
-                basket_05.body.immovable = true;
-                // basket_06.body.allowGravity = false;
-                // basket_06.body.immovable = true;
-                // basket_07.body.allowGravity = false;
-                // basket_07.body.immovable = true;
+                // 篮网
+                netsLeft = game.add.sprite(-77, 260, 'nets')
+                netsLeft.scale.setTo(0.45, 0.45)
+
+                game.physics.arcade.enable([basketball, reboundRight])
+                game.physics.arcade.enable([basketball, reboundLeft])
+                game.physics.arcade.enable([basketball, blockLeft_01])
+                game.physics.arcade.enable([basketball, blockLeft_02])
+                game.physics.arcade.enable([basketball, blockRight_01])
+                game.physics.arcade.enable([basketball, blockRight_02])
+
+                reboundRight.body.allowGravity = false;
+                reboundRight.body.immovable = true;
+
+                reboundLeft.body.allowGravity = false;
+                reboundLeft.body.immovable = true;
+
+                blockLeft_01.body.allowGravity = false;
+                blockLeft_01.body.immovable = true;
+
+                blockLeft_02.body.allowGravity = false;
+                blockLeft_02.body.immovable = true;
+
+                blockRight_01.body.allowGravity = false;
+                blockRight_01.body.immovable = true;
+
+                blockRight_02.body.allowGravity = false;
+                blockRight_02.body.immovable = true;
                 // 保持移动
-                basicBall.body.velocity.setTo(300, 500);
-                game.physics.arcade.gravity.y = 500;
-                basicBall.body.collideWorldBounds = true;
-                basicBall.body.bounce.setTo(0.6, 0.9);
+                // basketball.body.velocity.y = 1000;
+                game.physics.arcade.gravity.y = 5000;
+                basketball.body.collideWorldBounds = true;
+                basketball.body.bounce.setTo(0.8, 1);
+
+                timer = game.time.events.loop(10, timeDown, this);
+                tiemr_01 = game.time.events.loop(50,checkGoal,this);
             }
 
+            // 倒计时
             function timeDown() {
-
+                if (begin) {
+                    if (progress.width <= 0.3) {
+                        game.time.events.remove(timer);
+                    }
+                    progress.width -= 0.3;
+                }
             }
 
-            function leftOut() {
-                basket_05.x += -200;
-                basket_06.x += -200;
-                basket_07.x += -200;
-                basket_08.x += -200;
-                // game.add.tween(picture).to( { alpha: 0 }, 2000, Phaser.Easing.Linear.None, true);
+            function checkGoal() {
+                // console.log(basketball.y)
+                if (basketball.x < blockLeft_01.x && basketball.x > blockLeft_02.x) {
+                    if (last < 260 && basketball.y > 260) {
+                        console.log(last,basketball.y)
+                        goal()
+                    } 
+                        last = basketball.y
+                    
+                }
+                if (basketball.x > blockRight_01.x && basketball.x < blockRight_02.x) {
+                    if (last < 260 && basketball.y > 260) {
+                        console.log(last,basketball.y)
+                        goal()
+                    } 
+                        last = basketball.y
+                    
+                }
             }
 
-            function leftIn() {
-                basket_05.x += 200;
-                basket_06.x += 200;
-                basket_07.x += 200;
-                basket_08.x += 200;
+            function left(step) {
+                reboundLeft.x += step;
+                basketUpLeft.x += step;
+                basketDownLeft.x += step;
+                blockLeft_01.x += step;
+                blockLeft_02.x += step;
+                netsLeft.x += step;
+
+
+                reboundRight.x += step;
+                basketUpRight.x += step;
+                basketDownRight.x += step;
+                blockRight_01.x += step;
+                blockRight_02.x += step;
+                netsRight.x += step;
             }
 
-            function rightOut() {
-                basket_01.x += 200;
-                basket_02.x += 200;
-                basket_03.x += 200;
-                basket_04.x += 200;
-            }
+            function right(step) {
 
-            function rightIn() {
-                basket_01.x += 200;
-                basket_02.x += 200;
-                basket_03.x += 200;
-                basket_04.x += 200;
+                reboundLeft.x += -step;
+                basketUpLeft.x += -step;
+                basketDownLeft.x += -step;
+                blockLeft_01.x += -step;
+                blockLeft_02.x += -step;
+                netsLeft.x += -step;
+
+
+                reboundRight.x += -step;
+                basketUpRight.x += -step;
+                basketDownRight.x += -step;
+                blockRight_01.x += -step;
+                blockRight_02.x += -step;
+                netsRight.x += -step;
             }
 
             // 得分
             function goal() {
                 score++;
                 text.text = score;
+                direction = direction == 'right' ? 'left' : 'right';
+                progress.width = 450;
             }
 
             // 按下向上运动
-            function down(item) {
-                game.physics.arcade.gravity.y = -700;
-            }
+            function click(item) {
+                begin = true;
+                game.physics.arcade.gravity.y = 0;
+                basketball.body.bounce.setTo(0.8, 0.9);
+                basketball.body.velocity.y = -1200;
+                basketball.body.acceleration.y = 5000;
+                basketball.body.velocity.x = direction == 'right' ? 100 : -100;
+                // direction = direction === 'right'?'left':'right';
 
-            // 抬起向下运动
-            function up(item) {
-                game.physics.arcade.gravity.y = 300;
             }
 
             function update() {
-                game.physics.arcade.collide(basicBall, basket_01);
-                // game.physics.arcade.collide(basicBall, basket_02);
-                // game.physics.arcade.collide(basicBall, basket_03);
-                game.physics.arcade.collide(basicBall, basket_05);
-                // game.physics.arcade.collide(basicBall, basket_06);
-                // game.physics.arcade.collide(basicBall, basket_07);
+                game.physics.arcade.collide(basketball, reboundRight);
+                game.physics.arcade.collide(basketball, reboundLeft);
+                game.physics.arcade.collide(basketball, blockLeft_01);
+                game.physics.arcade.collide(basketball, blockLeft_02);
+                game.physics.arcade.collide(basketball, blockRight_01);
+                game.physics.arcade.collide(basketball, blockRight_02);
+                if (direction === 'left' && reboundLeft.x < 110) {
+                    left(8);
+                }
+                if (direction === 'left' && basketball.x < 100) {
+                    basketball.x = 700;
+                }
+                if (direction === 'right' && reboundRight.x > 690) {
+                    right(8);
+                }
+                if (direction === 'right' && basketball.x > 700) {
+                    basketball.x = 100;
+                }
+
+            }
+
+            function render() {
+
+
+                game.debug.geom(progress, '#0fffff');
             }
         }
     </script>
